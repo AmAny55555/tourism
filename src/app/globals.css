@@ -1,0 +1,365 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #fbf7ef;
+  --foreground: #171717;
+
+  --card: #ffffff;
+  --card-foreground: #171717;
+
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+
+  --primary: #c99b2e;
+  --primary-foreground: #111111;
+
+  --secondary: #f4ead7;
+  --secondary-foreground: #171717;
+
+  --muted: #f5efe4;
+  --muted-foreground: #6b7280;
+
+  --accent: #ead7ad;
+  --accent-foreground: #171717;
+
+  --destructive: oklch(0.577 0.245 27.325);
+
+  --border: #e7dcc7;
+  --input: #e7dcc7;
+  --ring: #c99b2e;
+
+  --chart-1: #d6ad3f;
+  --chart-2: #c99b2e;
+  --chart-3: #9d7a24;
+  --chart-4: #6f5317;
+  --chart-5: #3a2b0f;
+
+  --radius: 0.625rem;
+
+  --sidebar: #fbf7ef;
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #c99b2e;
+  --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #f4ead7;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e7dcc7;
+  --sidebar-ring: #c99b2e;
+}
+
+.dark {
+  --background: #090909;
+  --foreground: #f8f8f8;
+
+  --card: #1b1912;
+  --card-foreground: #f8f8f8;
+
+  --popover: #111111;
+  --popover-foreground: #f8f8f8;
+
+  --primary: #d6ad3f;
+  --primary-foreground: #090909;
+
+  --secondary: #17140d;
+  --secondary-foreground: #f8f8f8;
+
+  --muted: #181818;
+  --muted-foreground: #b8b8b8;
+
+  --accent: #2a2418;
+  --accent-foreground: #d6ad3f;
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: rgba(214, 173, 63, 0.22);
+  --input: rgba(214, 173, 63, 0.22);
+  --ring: #d6ad3f;
+
+  --chart-1: #fff1a8;
+  --chart-2: #d6ad3f;
+  --chart-3: #c89522;
+  --chart-4: #9d7a24;
+  --chart-5: #4a3a17;
+
+  --sidebar: #0d0d0d;
+  --sidebar-foreground: #f8f8f8;
+  --sidebar-primary: #d6ad3f;
+  --sidebar-primary-foreground: #090909;
+  --sidebar-accent: #1b1912;
+  --sidebar-accent-foreground: #d6ad3f;
+  --sidebar-border: rgba(214, 173, 63, 0.2);
+  --sidebar-ring: #d6ad3f;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  ::selection {
+    background: #d6ad3f;
+    color: #090909;
+  }
+}
+
+@keyframes heroEnterZoom {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+
+  18% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+.hero-bg-animate {
+  animation: heroEnterZoom 6s ease-in-out forwards;
+}
+
+.input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--input);
+  background: rgba(255, 255, 255, 0.82);
+  color: #171717;
+  text-align: right;
+  transition: 0.3s ease;
+}
+
+.dark .input {
+  border-color: rgba(214, 173, 63, 0.25);
+  background: rgba(27, 25, 18, 0.9);
+  color: #f8f8f8;
+}
+
+.input::placeholder {
+  color: #777;
+}
+
+.dark .input::placeholder {
+  color: #b8b8b8;
+}
+
+
+/* =========================
+   TAUI DARK MODE PATCH
+   يحافظ على المقاسات والمسافات واللوجيك
+   ويغير الألوان فقط
+========================= */
+
+.dark body {
+  background: #090909;
+  color: #f8f8f8;
+}
+
+/* الخلفيات العامة الفاتحة */
+.dark [class*="bg-[#fbf7ef]"],
+.dark [class*="bg-[#f7f0e6]"],
+.dark [class*="bg-[#fffaf0]"],
+.dark [class*="bg-[#fcfaf6]"],
+.dark [class*="bg-[#f5efe4]"],
+.dark [class*="bg-[#f5ead2]"],
+.dark [class*="bg-[#f4ead7]"] {
+  background-color: #090909 !important;
+}
+
+/* الكروت البيضاء */
+.dark [class*="bg-white"],
+.dark [class*="bg-white/"],
+.dark [class*="bg-[#ffffff]"] {
+  background-color: #1b1912 !important;
+}
+
+/* كروت أغمق شوية */
+.dark section[class*="bg-white"],
+.dark article[class*="bg-white"],
+.dark aside[class*="bg-white"],
+.dark div[class*="bg-white"] {
+  background-color: #1b1912 !important;
+}
+
+/* النصوص الغامقة */
+.dark [class*="text-[#06142b]"],
+.dark [class*="text-[#1f1f1f]"],
+.dark [class*="text-[#111]"],
+.dark [class*="text-black"] {
+  color: #f8f8f8 !important;
+}
+
+/* النصوص الرمادي */
+.dark [class*="text-[#667085]"],
+.dark [class*="text-[#5f6368]"],
+.dark [class*="text-[#6b7280]"],
+.dark [class*="text-slate-500"],
+.dark [class*="text-slate-600"],
+.dark [class*="text-gray-500"],
+.dark [class*="text-gray-600"] {
+  color: #b8b8b8 !important;
+}
+
+/* الحدود */
+.dark [class*="border-[#ead7ad]"],
+.dark [class*="border-[#ede7dc]"],
+.dark [class*="border-[#e7e1d6]"],
+.dark [class*="border-[#eadfca]"],
+.dark [class*="border-[#e8dfcf]"],
+.dark [class*="border-[#d8c69c]"] {
+  border-color: rgba(214, 173, 63, 0.28) !important;
+}
+
+/* الجلو والذهبي */
+.dark [class*="text-[#c99b2e]"],
+.dark [class*="text-[#d4af37]"],
+.dark [class*="text-[#8f6f2a]"] {
+  color: #d6ad3f !important;
+}
+
+/* البادجات والخلفيات الذهبية الفاتحة */
+.dark [class*="bg-[#c99b2e]"] {
+  background-color: #d6ad3f !important;
+  color: #090909 !important;
+}
+
+.dark [class*="bg-[#d4af37]"] {
+  background-color: #d6ad3f !important;
+  color: #090909 !important;
+}
+
+/* الخلفيات الكحلي / السوداء */
+.dark [class*="bg-[#06142b]"] {
+  background-color: #111111 !important;
+  color: #d6ad3f !important;
+}
+
+
+.dark [class*="from-[#f3e7c9]"],
+.dark [class*="from-[#fffaf0]"],
+.dark [class*="via-white"],
+.dark [class*="to-[#fffaf0]"],
+.dark [class*="to-[#f5ead2]"] {
+  background-image: linear-gradient(
+    135deg,
+    #090909 0%,
+    #1b1912 55%,
+    #2a2418 100%
+  ) !important;
+}
+
+/* البوكسات الداخلية */
+.dark [class*="shadow-sm"],
+.dark [class*="shadow-md"],
+.dark [class*="shadow-lg"] {
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* الإنبتس والفورمز */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1b1912;
+  color: #f8f8f8;
+  border-color: rgba(214, 173, 63, 0.28);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #b8b8b8;
+}
+
+/* SweetAlert dark */
+.dark .swal2-popup {
+  background: #1b1912 !important;
+  color: #f8f8f8 !important;
+  border: 1px solid rgba(214, 173, 63, 0.28);
+}
+
+.dark .swal2-title {
+  color: #f8f8f8 !important;
+}
+
+.dark .swal2-html-container {
+  color: #b8b8b8 !important;
+}
+
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select {
+  background: #090909 !important;
+  color: #f8f8f8 !important;
+  border: 1px solid rgba(214, 173, 63, 0.35) !important;
+}
+
+
+.dark .swiper-pagination-bullet {
+  background: #d6ad3f !important;
+  opacity: 0.45;
+}
+
+.dark .swiper-pagination-bullet-active {
+  opacity: 1;
+}
