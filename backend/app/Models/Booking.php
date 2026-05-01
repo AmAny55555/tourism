@@ -17,6 +17,9 @@ class Booking extends Model
         'notes',
         'status',
         'points_earned',
+        'rating',
+        'review',
+        'rated_at',
     ];
 
     public function user()
@@ -30,7 +33,7 @@ class Booking extends Model
     }
 
     public function payment()
-{
-    return $this->hasOne(Payment::class);
-}
+    {
+        return $this->hasOne(Payment::class);
+    }
 }

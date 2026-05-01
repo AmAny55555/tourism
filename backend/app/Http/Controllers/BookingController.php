@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -77,5 +78,109 @@ class BookingController extends Controller
             'message' => 'تم إرسال طلب الحجز بنجاح',
             'booking' => $booking,
         ], 201);
+    }
+
+    public function markCompleted(Request $request, Booking $booking)
+    {
+        if (($request->user()->role ?? 'user') !== 'admin') {
+            return response()->json([
+                'message' => 'غير مسموح لك بإنهاء هذه الرحلة.',
+            ], 403);
+        }
+
+        $pointsEarned = $booking->points_earned > 0 ? $booking->points_earned : 30;
+
+        $booking->update([
+            'status' => 'completed',
+            'points_earned' => $pointsEarned,
+        ]);
+
+        Notification::create([
+            'user_id' => $booking->user_id,
+
+            'title' => 'تم اكتمال رحلتك',
+            'message' => 'رحلتك أصبحت مكتملة الآن، يمكنك تقييم التجربة من لوحة التحكم.',
+
+            'title_ar' => 'تم اكتمال رحلتك',
+            'title_en' => 'Your trip is completed',
+            'message_ar' => 'رحلتك أصبحت مكتملة الآن، يمكنك تقييم التجربة من لوحة التحكم.',
+            'message_en' => 'Your trip is now completed. You can rate your experience from your dashboard.',
+
+            'type' => 'booking_completed',
+            'url' => '/dashboard',
+        ]);
+
+        return response()->json([
+            'message' => 'تم إنهاء الرحلة بنجاح',
+            'booking' => $booking,
+        ]);
+    }
+
+    public function rate(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'غير مسموح لك بتقييم هذه الرحلة.',
+            ], 403);
+        }
+
+        if ($booking->status !== 'completed') {
+            return response()->json([
+                'message' => 'لا يمكنك تقييم الرحلة قبل اكتمالها.',
+            ], 403);
+        }
+
+        $alreadyReviewed = Review::where('booking_id', $booking->id)
+            ->where('user_id', $request->user()->id)
+            ->exists();
+
+        if ($alreadyReviewed || !is_null($booking->rating)) {
+            return response()->json([
+                'message' => 'تم تقييم هذه الرحلة من قبل.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'review' => 'nullable|string|max:1000',
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        $comment = $validated['review'] ?? $validated['comment'] ?? null;
+
+        $review = Review::create([
+            'user_id' => $request->user()->id,
+            'booking_id' => $booking->id,
+            'rating' => $validated['rating'],
+            'comment' => $comment,
+            'is_approved' => true,
+        ]);
+
+        $booking->update([
+            'rating' => $validated['rating'],
+            'review' => $comment,
+            'rated_at' => now(),
+        ]);
+
+        Notification::create([
+            'user_id' => $booking->user_id,
+
+            'title' => 'تم إرسال تقييمك',
+            'message' => 'شكرًا لتقييمك الرحلة، رأيك يساعدنا نحسن تجربتك.',
+
+            'title_ar' => 'تم إرسال تقييمك',
+            'title_en' => 'Your review has been submitted',
+            'message_ar' => 'شكرًا لتقييمك الرحلة، رأيك يساعدنا نحسن تجربتك.',
+            'message_en' => 'Thank you for rating your trip. Your feedback helps us improve your experience.',
+
+            'type' => 'booking_rated',
+            'url' => '/dashboard',
+        ]);
+
+        return response()->json([
+            'message' => 'تم إرسال تقييمك بنجاح.',
+            'booking' => $booking,
+            'review' => $review,
+        ]);
     }
 }

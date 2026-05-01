@@ -8,6 +8,8 @@ class TravelCountry extends Model
 {
     protected $fillable = [
         'name',
+        'name_ar',
+        'name_en',
         'slug',
         'image',
         'is_active',

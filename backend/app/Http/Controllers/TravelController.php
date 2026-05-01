@@ -15,7 +15,7 @@ class TravelController extends Controller
     public function countries()
     {
         $countries = TravelCountry::where('is_active', true)
-            ->select('id', 'name', 'slug', 'image')
+         ->select('id', 'name', 'name_ar', 'name_en', 'slug', 'image')
             ->get();
 
         return response()->json([
@@ -118,7 +118,7 @@ class TravelController extends Controller
     {
         $requests = ForeignTripRequest::with([
             'user:id,name,email',
-            'country:id,name',
+         'country:id,name,name_ar,name_en',
             'answers.field:id,label,type',
         ])
             ->latest()
@@ -181,7 +181,7 @@ class TravelController extends Controller
             abort(403, 'غير مسموح لك بعرض هذا الطلب');
         }
 
-        $foreignRequest->load('country:id,name');
+     $foreignRequest->load('country:id,name,name_ar,name_en');
 
         return response()->json([
             'trip' => $foreignRequest,
@@ -249,7 +249,7 @@ class TravelController extends Controller
     {
         $payments = ForeignPayment::with([
             'request.user:id,name,email',
-            'request.country:id,name',
+          'request.country:id,name,name_ar,name_en',
         ])
             ->latest()
             ->get();
