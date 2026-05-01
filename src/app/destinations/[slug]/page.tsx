@@ -12,7 +12,7 @@ export default function DestinationPage() {
   const { t, lang } = useLanguage();
 
   const text = t.common.destinationDetailsPage;
-  
+
   const isAr = lang === "ar";
 
   const [destination, setDestination] = useState<any>(null);
@@ -38,27 +38,86 @@ export default function DestinationPage() {
     return `http://localhost:8000/storage/${image}`;
   };
 
+  const getDestinationName = (destination: any) =>
+    isAr
+      ? destination.name_ar || destination.name
+      : destination.name_en || destination.name;
+
+  const getDestinationLocation = (destination: any) =>
+    isAr
+      ? destination.location_ar || destination.location
+      : destination.location_en || destination.location;
+
+  const getDestinationDescription = (destination: any) => {
+    if (isAr) {
+      return (
+        destination.overview_ar ||
+        destination.description_ar ||
+        destination.overview ||
+        destination.description
+      );
+    }
+
+    return (
+      destination.overview_en ||
+      destination.description_en ||
+      destination.overview ||
+      destination.description
+    );
+  };
+
+  const getBestTimeToVisit = (destination: any) =>
+    isAr
+      ? destination.best_time_to_visit_ar || destination.best_time_to_visit
+      : destination.best_time_to_visit_en || destination.best_time_to_visit;
+
+  const getLandmarks = (destination: any) => {
+    const rawLandmarks = isAr
+      ? destination.landmarks_ar || destination.landmarks
+      : destination.landmarks_en || destination.landmarks;
+
+    if (!rawLandmarks) return [];
+
+    if (Array.isArray(rawLandmarks)) {
+      return rawLandmarks;
+    }
+
+    try {
+      const parsed = JSON.parse(rawLandmarks);
+
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {}
+
+    return String(rawLandmarks)
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
   if (!destination) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fbf7ef]">
         <p className="font-black text-[#06142b]">
-          {text?.loading || "جاري التحميل..."}
+          {text?.loading || (isAr ? "جاري التحميل..." : "Loading...")}
         </p>
       </main>
     );
   }
 
-  const landmarks =
-    typeof destination.landmarks === "string"
-      ? JSON.parse(destination.landmarks || "[]")
-      : destination.landmarks || [];
+  const destinationName = getDestinationName(destination);
+  const destinationLocation = getDestinationLocation(destination);
+  const destinationDescription = getDestinationDescription(destination);
+  const bestTimeToVisit = getBestTimeToVisit(destination);
+  const landmarks = getLandmarks(destination);
 
   return (
     <main dir={isAr ? "rtl" : "ltr"} className="min-h-screen bg-[#fbf7ef]">
       <section className="relative h-[430px] overflow-hidden sm:h-[520px]">
         <img
           src={getImageUrl(destination.cover_image || destination.image)}
-          alt={destination.name}
+          alt={destinationName}
           className="absolute inset-0 h-full w-full object-cover"
         />
 
@@ -72,7 +131,7 @@ export default function DestinationPage() {
           </span>
 
           <h1 className="text-4xl font-black leading-tight sm:text-6xl">
-            {destination.name}
+            {destinationName}
           </h1>
 
           <div className="mt-5 flex flex-wrap gap-4 text-sm font-bold text-white/90 sm:gap-6">
@@ -82,13 +141,13 @@ export default function DestinationPage() {
             </span>
 
             <span className="flex items-center gap-2">
-              {destination.days || 1} {text?.days || "أيام"}
+              {destination.days || 1} {text?.days || (isAr ? "أيام" : "days")}
               <Clock size={17} className="text-[#d4af37]" />
             </span>
 
-            {destination.location && (
+            {destinationLocation && (
               <span className="flex items-center gap-2">
-                {destination.location}
+                {destinationLocation}
                 <MapPin size={17} className="text-[#d4af37]" />
               </span>
             )}
@@ -99,14 +158,14 @@ export default function DestinationPage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-8">
-            {(destination.overview || destination.description) && (
+            {destinationDescription && (
               <div className="rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="mb-4 text-2xl font-black text-[#06142b]">
-                  {text?.overview || "نبذة عن المحافظة"}
+                  {text?.overview || (isAr ? "نبذة عن المحافظة" : "Overview")}
                 </h2>
 
                 <p className="text-base font-bold leading-8 text-[#667085]">
-                  {destination.overview || destination.description}
+                  {destinationDescription}
                 </p>
               </div>
             )}
@@ -114,7 +173,7 @@ export default function DestinationPage() {
             {landmarks.length > 0 && (
               <div className="rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="mb-5 text-2xl font-black text-[#06142b]">
-                  {text?.landmarks || "أشهر المعالم"}
+                  {text?.landmarks || (isAr ? "أشهر المعالم" : "Famous Landmarks")}
                 </h2>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -130,14 +189,14 @@ export default function DestinationPage() {
               </div>
             )}
 
-            {destination.best_time_to_visit && (
+            {bestTimeToVisit && (
               <div className="rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="mb-4 text-2xl font-black text-[#06142b]">
-                  {text?.bestTime || "أفضل وقت للزيارة"}
+                  {text?.bestTime || (isAr ? "أفضل وقت للزيارة" : "Best Time to Visit")}
                 </h2>
 
                 <p className="font-bold leading-8 text-[#667085]">
-                  {destination.best_time_to_visit}
+                  {bestTimeToVisit}
                 </p>
               </div>
             )}
@@ -146,26 +205,28 @@ export default function DestinationPage() {
           <aside className="h-fit rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-[0_20px_70px_rgba(212,175,55,0.14)] lg:sticky lg:top-8">
             <div className="rounded-[24px] bg-[#fffaf0] p-5">
               <p className="text-sm font-black text-[#8f6f2a]">
-                {text?.priceTitle || "سعر الرحلة"}
+                {text?.priceTitle || (isAr ? "سعر الرحلة" : "Trip Price")}
               </p>
 
               <h3 className="mt-2 text-3xl font-black text-[#06142b]">
                 {Number(destination.price || 0).toLocaleString()}{" "}
-                {text?.currency || "جنيه"}
+                {text?.currency || (isAr ? "جنيه" : "EGP")}
               </h3>
             </div>
 
-        <Link
-  href={`/tours/${destination.slug}`}
-  className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[#06142b] px-6 py-4 text-base font-black text-[#f4c542] shadow-lg transition hover:-translate-y-1 hover:bg-[#0b1f3f]"
->
-  <CalendarDays size={19} />
-  {text?.bookNow || "احجز الرحلة"}
-</Link>
+            <Link
+              href={`/tours/${destination.slug}`}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[#06142b] px-6 py-4 text-base font-black text-[#f4c542] shadow-lg transition hover:-translate-y-1 hover:bg-[#0b1f3f]"
+            >
+              <CalendarDays size={19} />
+              {text?.bookNow || (isAr ? "احجز الرحلة" : "Book Trip")}
+            </Link>
 
             <div className="mt-5 rounded-2xl bg-green-50 p-4 text-sm font-bold leading-6 text-green-700">
               {text?.reviewNote ||
-                "بعد إرسال الطلب، سيقوم الأدمن بتجهيز تفاصيل الفندق والمواصلات والسعر النهائي."}
+                (isAr
+                  ? "بعد إرسال الطلب، سيقوم الأدمن بتجهيز تفاصيل الفندق والمواصلات والسعر النهائي."
+                  : "After submitting your request, the admin will prepare the hotel, transportation, and final price.")}
             </div>
           </aside>
         </div>

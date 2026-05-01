@@ -14,6 +14,52 @@ export default function InternalBookingPage() {
 
   const isAr = lang === "ar";
 
+  const pageText = {
+    loading: isAr ? "جاري التحميل..." : "Loading...",
+    notFoundTitle: isAr ? "خطأ" : "Error",
+    notFoundText: isAr ? "لم يتم العثور على الرحلة" : "Trip was not found",
+    warningTitle: isAr ? "تنبيه" : "Warning",
+    validationText: isAr
+      ? "من فضلك أدخل تاريخ السفر وعدد الأيام"
+      : "Please enter the travel date and number of days",
+    successTitle: isAr ? "تم" : "Done",
+    successText: isAr
+      ? "تم إرسال طلب الرحلة بنجاح"
+      : "Your trip request has been submitted successfully",
+    errorTitle: isAr ? "خطأ" : "Error",
+    errorText: isAr
+      ? "حصلت مشكلة أثناء إرسال الطلب"
+      : "Something went wrong while submitting the request",
+
+    heroTitlePrefix: isAr ? "احجز رحلة إلى" : "Book a trip to",
+    heroDescription: isAr
+      ? "املأ بيانات الرحلة، وسيقوم الأدمن بمراجعة الطلب وتجهيز تفاصيل الفندق والمواصلات والسعر النهائي."
+      : "Fill in your trip details, and the admin will review your request and prepare the hotel, transportation, and final price.",
+
+    bookingDetails: isAr ? "تفاصيل الحجز" : "Booking Details",
+    travelDate: isAr ? "تاريخ السفر" : "Travel Date",
+    daysCount: isAr ? "عدد الأيام" : "Number of Days",
+    daysPlaceholder: isAr ? "مثال: 3" : "Example: 3",
+    adultsCount: isAr ? "عدد البالغين" : "Adults",
+    childrenCount: isAr ? "عدد الأطفال" : "Children",
+    notes: isAr ? "ملاحظات" : "Notes",
+    notesPlaceholder: isAr
+      ? "اكتب أي تفاصيل إضافية..."
+      : "Write any additional details...",
+    sending: isAr ? "جاري الإرسال..." : "Sending...",
+    submit: isAr ? "إرسال الطلب" : "Submit Request",
+
+    summaryTitle: isAr ? "ملخص الرحلة" : "Trip Summary",
+    destination: isAr ? "الوجهة" : "Destination",
+    basePrice: isAr ? "السعر الأساسي" : "Base Price",
+    duration: isAr ? "المدة" : "Duration",
+    currency: isAr ? "جنيه" : "EGP",
+    days: isAr ? "أيام" : "days",
+    afterSubmit: isAr
+      ? "بعد إرسال الطلب، سيتم تجهيز العرض المناسب قبل تأكيد الحجز."
+      : "After submitting your request, a suitable offer will be prepared before booking confirmation.",
+  };
+
   const [destination, setDestination] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
@@ -26,13 +72,18 @@ export default function InternalBookingPage() {
     notes: "",
   });
 
+  const getDestinationName = (destination: any) =>
+    isAr
+      ? destination?.name_ar || destination?.name
+      : destination?.name_en || destination?.name;
+
   useEffect(() => {
     const fetchDestination = async () => {
       try {
         const res = await axios.get(`/destinations/${slug}`);
         setDestination(res.data.destination);
       } catch {
-        Swal.fire("خطأ", "لم يتم العثور على الرحلة", "error");
+        Swal.fire(pageText.notFoundTitle, pageText.notFoundText, "error");
         router.push("/tours");
       } finally {
         setPageLoading(false);
@@ -40,33 +91,33 @@ export default function InternalBookingPage() {
     };
 
     fetchDestination();
-  }, [slug, router]);
+  }, [slug, router, pageText.notFoundTitle, pageText.notFoundText]);
 
   const handleSubmit = async () => {
     if (!form.travel_date || !form.days) {
-      Swal.fire("تنبيه", "من فضلك أدخل تاريخ السفر وعدد الأيام", "warning");
+      Swal.fire(pageText.warningTitle, pageText.validationText, "warning");
       return;
     }
 
     try {
       setLoading(true);
 
-    await axios.post("/bookings", {
-  destination: destination.name,
-  travel_date: form.travel_date,
-  days_count: Number(form.days),
-  adults_count: Number(form.adults),
-  children_count: Number(form.children),
-  trip_class: destination.category || "Economy Class",
-  notes: form.notes,
-});
+      await axios.post("/bookings", {
+        destination: getDestinationName(destination),
+        travel_date: form.travel_date,
+        days_count: Number(form.days),
+        adults_count: Number(form.adults),
+        children_count: Number(form.children),
+        trip_class: destination.category || "Economy Class",
+        notes: form.notes,
+      });
 
-      await Swal.fire("تم", "تم إرسال طلب الرحلة بنجاح", "success");
+      await Swal.fire(pageText.successTitle, pageText.successText, "success");
       router.push("/dashboard");
     } catch (err: any) {
       Swal.fire(
-        "خطأ",
-        err.response?.data?.message || "حصلت مشكلة أثناء إرسال الطلب",
+        pageText.errorTitle,
+        err.response?.data?.message || pageText.errorText,
         "error"
       );
     } finally {
@@ -78,7 +129,7 @@ export default function InternalBookingPage() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#fbf7ef]">
         <div className="rounded-3xl bg-white px-8 py-6 font-black text-[#06142b] shadow">
-          جاري التحميل...
+          {pageText.loading}
         </div>
       </main>
     );
@@ -99,11 +150,11 @@ export default function InternalBookingPage() {
             </span>
 
             <h1 className="text-3xl font-black sm:text-5xl">
-              احجز رحلة إلى {destination.name}
+              {pageText.heroTitlePrefix} {getDestinationName(destination)}
             </h1>
 
             <p className="mt-4 max-w-2xl text-sm font-bold leading-7 text-white/80">
-              املأ بيانات الرحلة، وسيقوم الأدمن بمراجعة الطلب وتجهيز تفاصيل الفندق والمواصلات والسعر النهائي.
+              {pageText.heroDescription}
             </p>
           </div>
         </div>
@@ -112,13 +163,13 @@ export default function InternalBookingPage() {
           <div className="rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-sm">
             <h2 className="mb-6 flex items-center gap-2 text-2xl font-black text-[#06142b]">
               <CalendarDays className="text-[#d4af37]" />
-              تفاصيل الحجز
+              {pageText.bookingDetails}
             </h2>
 
             <div className="grid gap-5">
               <div>
                 <label className="mb-2 block font-black text-[#06142b]">
-                  تاريخ السفر
+                  {pageText.travelDate}
                 </label>
                 <input
                   type="date"
@@ -132,7 +183,7 @@ export default function InternalBookingPage() {
 
               <div>
                 <label className="mb-2 block font-black text-[#06142b]">
-                  عدد الأيام
+                  {pageText.daysCount}
                 </label>
                 <input
                   type="number"
@@ -140,7 +191,7 @@ export default function InternalBookingPage() {
                   max="14"
                   value={form.days}
                   onChange={(e) => setForm({ ...form, days: e.target.value })}
-                  placeholder="مثال: 3"
+                  placeholder={pageText.daysPlaceholder}
                   className="h-14 w-full rounded-2xl border border-[#eadfca] bg-[#fcfaf6] px-5 font-bold outline-none focus:border-[#d4af37]"
                 />
               </div>
@@ -148,7 +199,7 @@ export default function InternalBookingPage() {
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label className="mb-2 block font-black text-[#06142b]">
-                    عدد البالغين
+                    {pageText.adultsCount}
                   </label>
                   <input
                     type="number"
@@ -163,7 +214,7 @@ export default function InternalBookingPage() {
 
                 <div>
                   <label className="mb-2 block font-black text-[#06142b]">
-                    عدد الأطفال
+                    {pageText.childrenCount}
                   </label>
                   <input
                     type="number"
@@ -179,12 +230,12 @@ export default function InternalBookingPage() {
 
               <div>
                 <label className="mb-2 block font-black text-[#06142b]">
-                  ملاحظات
+                  {pageText.notes}
                 </label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="اكتب أي تفاصيل إضافية..."
+                  placeholder={pageText.notesPlaceholder}
                   className="min-h-32 w-full rounded-2xl border border-[#eadfca] bg-[#fcfaf6] px-5 py-4 font-bold outline-none focus:border-[#d4af37]"
                 />
               </div>
@@ -198,12 +249,12 @@ export default function InternalBookingPage() {
                 {loading ? (
                   <>
                     <Loader2 className="animate-spin" size={19} />
-                    جاري الإرسال...
+                    {pageText.sending}
                   </>
                 ) : (
                   <>
                     <Send size={19} />
-                    إرسال الطلب
+                    {pageText.submit}
                   </>
                 )}
               </button>
@@ -213,19 +264,27 @@ export default function InternalBookingPage() {
           <aside className="h-fit rounded-[30px] border border-[#eadfca] bg-white p-6 shadow-sm">
             <div className="rounded-[24px] bg-[#fffaf0] p-5">
               <h3 className="text-xl font-black text-[#06142b]">
-                ملخص الرحلة
+                {pageText.summaryTitle}
               </h3>
 
               <div className="mt-5 space-y-3 text-sm font-bold text-[#667085]">
-                <p>الوجهة: {destination.name}</p>
-                <p>السعر الأساسي: {Number(destination.price || 0).toLocaleString()} جنيه</p>
-                <p>المدة: {destination.days || 1} أيام</p>
+                <p>
+                  {pageText.destination}: {getDestinationName(destination)}
+                </p>
+                <p>
+                  {pageText.basePrice}:{" "}
+                  {Number(destination.price || 0).toLocaleString()}{" "}
+                  {pageText.currency}
+                </p>
+                <p>
+                  {pageText.duration}: {destination.days || 1} {pageText.days}
+                </p>
               </div>
             </div>
 
             <div className="mt-5 flex items-start gap-2 rounded-2xl bg-green-50 p-4 text-sm font-bold leading-6 text-green-700">
               <Users size={18} className="mt-1 shrink-0" />
-              بعد إرسال الطلب، سيتم تجهيز العرض المناسب قبل تأكيد الحجز.
+              {pageText.afterSubmit}
             </div>
           </aside>
         </div>

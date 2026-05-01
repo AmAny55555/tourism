@@ -7,25 +7,19 @@ import { Clock, MapPin, Star } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import Loading from "@/app/loading";
 
-type TravelCountry = {
-  id: number;
-  name: string;
-  slug: string;
-  image: string | null;
-  is_active: boolean;
-};
 type Country = {
   id: number;
   name: string;
   name_ar?: string | null;
   name_en?: string | null;
-  slug?: string;
+  slug?: string | null;
   image?: string | null;
+  is_active?: boolean;
 };
 
 async function getCountries() {
   const res = await axios.get("/travel-countries");
-  return res.data.countries as TravelCountry[];
+  return res.data.countries as Country[];
 }
 
 export default function OutboundPage() {
@@ -34,8 +28,11 @@ export default function OutboundPage() {
   const text = t.common.outboundPage;
   const isAr = lang === "ar";
 
+  const getCountryName = (country: Country) =>
+    isAr ? country.name_ar || country.name : country.name_en || country.name;
+
   const { data: countries = [], isLoading } = useQuery({
-    queryKey: ["travel-countries"],
+    queryKey: ["travel-countries", lang],
     queryFn: getCountries,
   });
 
@@ -90,9 +87,10 @@ export default function OutboundPage() {
             {text.section.title}
           </h2>
         </div>
-{isLoading ? (
-  <Loading />
-) : countries.length === 0 ? (
+
+        {isLoading ? (
+          <Loading />
+        ) : countries.length === 0 ? (
           <div className="rounded-[28px] border border-[#e8dfcf] bg-white p-7 text-center shadow sm:rounded-[34px] sm:p-10">
             <p className="text-base font-bold leading-7 text-slate-500 sm:text-lg">
               {text.empty}
@@ -100,94 +98,100 @@ export default function OutboundPage() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-            {countries.map((country) => (
-              <article
-                key={country.id}
-                className="group overflow-hidden rounded-[28px] bg-white shadow-[0_20px_70px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_90px_rgba(0,0,0,0.14)] sm:rounded-[34px] lg:hover:-translate-y-4"
-              >
-                <div className="relative h-[230px] overflow-hidden sm:h-[250px] lg:h-[260px]">
-                  <img
-                    src={
-                      country.image ||
-                      "https://images.pexels.com/photos/2044434/pexels-photo-2044434.jpeg"
-                    }
-                    alt={isAr ? country.name_ar || country.name : country.name_en || country.name}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
-                  />
+            {countries.map((country) => {
+              const countryName = getCountryName(country);
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+              return (
+                <article
+                  key={country.id}
+                  className="group overflow-hidden rounded-[28px] bg-white shadow-[0_20px_70px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_30px_90px_rgba(0,0,0,0.14)] sm:rounded-[34px] lg:hover:-translate-y-4"
+                >
+                  <div className="relative h-[230px] overflow-hidden sm:h-[250px] lg:h-[260px]">
+                    <img
+                      src={
+                        country.image ||
+                        "https://images.pexels.com/photos/2044434/pexels-photo-2044434.jpeg"
+                      }
+                      alt={countryName}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                    />
 
-                  <div
-                    className={`absolute bottom-4 rounded-full border border-white/40 bg-black/55 px-4 py-2 text-xs font-bold text-white backdrop-blur-md sm:text-sm ${
-                      isAr ? "left-4" : "right-4"
-                    }`}
-                  >
-                  {isAr ? country.name_ar || country.name : country.name_en || country.name}
-                  </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
 
-                  <div
-                    className={`absolute bottom-4 rounded-full bg-[#d4af37] px-4 py-2 text-xs font-bold text-white sm:text-sm ${
-                      isAr ? "right-4" : "left-4"
-                    }`}
-                  >
-                    {text.card.badge}
-                  </div>
-                </div>
-
-                <div className={isAr ? "p-5 text-right sm:p-6" : "p-5 text-left sm:p-6"}>
-                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[#f7f0e6] px-4 py-2 text-sm font-bold text-[#8f6f2a]">
-                      4.9
-                      <Star
-                        size={15}
-                        fill="#d4af37"
-                        className="text-[#d4af37]"
-                      />
-                    </span>
-
-                    <span className="flex items-center gap-1 text-sm font-semibold text-slate-500">
-                     <span className="break-words">
-  {isAr ? country.name_ar || country.name : country.name_en || country.name}
-</span>
-                      <MapPin size={16} className="shrink-0 text-[#d4af37]" />
-                    </span>
-                  </div>
-
-                  <h3 className="break-words text-xl font-black leading-8 sm:text-2xl">
-                    {text.card.title} {isAr ? country.name_ar || country.name : country.name_en || country.name}
-                  </h3>
-
-                  <p className="mt-4 min-h-[56px] text-sm leading-7 text-slate-500">
-                    {text.card.description}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-[#e8dfcf] bg-white px-3 py-1 text-xs font-semibold text-slate-500"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <Link
-                      href={`/foreign-trips/${country.id}`}
-                      className="inline-flex justify-center rounded-full border border-[#d4af37]/40 px-6 py-3 text-sm font-bold text-[#101827] transition hover:bg-[#d4af37] hover:text-white"
+                    <div
+                      className={`absolute bottom-4 rounded-full border border-white/40 bg-black/55 px-4 py-2 text-xs font-bold text-white backdrop-blur-md sm:text-sm ${
+                        isAr ? "left-4" : "right-4"
+                      }`}
                     >
-                      {text.card.button}
-                    </Link>
+                      {countryName}
+                    </div>
 
-                    <span className="flex items-center justify-center gap-1 text-sm font-semibold text-slate-500 sm:justify-start">
-                      {text.card.duration}
-                      <Clock size={16} className="shrink-0 text-[#d4af37]" />
-                    </span>
+                    <div
+                      className={`absolute bottom-4 rounded-full bg-[#d4af37] px-4 py-2 text-xs font-bold text-white sm:text-sm ${
+                        isAr ? "right-4" : "left-4"
+                      }`}
+                    >
+                      {text.card.badge}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+
+                  <div
+                    className={
+                      isAr ? "p-5 text-right sm:p-6" : "p-5 text-left sm:p-6"
+                    }
+                  >
+                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[#f7f0e6] px-4 py-2 text-sm font-bold text-[#8f6f2a]">
+                        4.9
+                        <Star
+                          size={15}
+                          fill="#d4af37"
+                          className="text-[#d4af37]"
+                        />
+                      </span>
+
+                      <span className="flex items-center gap-1 text-sm font-semibold text-slate-500">
+                        <span className="break-words">{countryName}</span>
+                        <MapPin size={16} className="shrink-0 text-[#d4af37]" />
+                      </span>
+                    </div>
+
+                    <h3 className="break-words text-xl font-black leading-8 sm:text-2xl">
+                      {text.card.title} {countryName}
+                    </h3>
+
+                    <p className="mt-4 min-h-[56px] text-sm leading-7 text-slate-500">
+                      {text.card.description}
+                    </p>
+
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-[#e8dfcf] bg-white px-3 py-1 text-xs font-semibold text-slate-500"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <Link
+                        href={`/foreign-trips/${country.id}`}
+                        className="inline-flex justify-center rounded-full border border-[#d4af37]/40 px-6 py-3 text-sm font-bold text-[#101827] transition hover:bg-[#d4af37] hover:text-white"
+                      >
+                        {text.card.button}
+                      </Link>
+
+                      <span className="flex items-center justify-center gap-1 text-sm font-semibold text-slate-500 sm:justify-start">
+                        {text.card.duration}
+                        <Clock size={16} className="shrink-0 text-[#d4af37]" />
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
