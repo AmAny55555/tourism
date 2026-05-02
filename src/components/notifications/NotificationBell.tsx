@@ -33,7 +33,6 @@ export default function NotificationBell() {
     if (isAr) {
       return notification.title_ar || notification.title || notification.title_en;
     }
-
     return notification.title_en || notification.title || notification.title_ar;
   };
 
@@ -41,7 +40,6 @@ export default function NotificationBell() {
     if (isAr) {
       return notification.message_ar || notification.message || notification.message_en;
     }
-
     return notification.message_en || notification.message || notification.message_ar;
   };
 
@@ -86,7 +84,6 @@ export default function NotificationBell() {
 
   const handleToggleOpen = () => {
     const nextOpen = !open;
-
     setOpen(nextOpen);
 
     if (nextOpen && unreadCount > 0) {
@@ -107,7 +104,7 @@ export default function NotificationBell() {
         {unreadCount > 0 && (
           <span
             className={`absolute -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#c99b2e] px-1 text-xs font-black text-white ${
-              isAr ? "-left-1" : "-right-1"
+              isAr ? "-left-1.5" : "-right-1.5"
             }`}
           >
             {unreadCount}
@@ -118,10 +115,11 @@ export default function NotificationBell() {
       {open && (
         <div
           dir={isAr ? "rtl" : "ltr"}
-          className={`absolute top-14 z-50 w-[320px] overflow-hidden rounded-[24px] border border-[#ead7ad] bg-white shadow-2xl sm:w-[340px] ${
-            isAr ? "left-0" : "right-0"
+          className={`fixed left-1/2 top-16 z-[9999] w-[calc(100vw-24px)] max-w-[360px] -translate-x-1/2 overflow-hidden rounded-[24px] border border-[#ead7ad] bg-white shadow-2xl md:absolute md:top-14 md:w-[340px] md:translate-x-0 ${
+            isAr ? "md:left-0" : "md:right-0"
           }`}
         >
+          {/* Header */}
           <div className="flex items-center justify-between gap-3 border-b border-[#ead7ad] bg-[#fffaf0] p-4">
             <h3 className="font-black text-[#06142b]">
               {notificationsText.title}
@@ -141,7 +139,8 @@ export default function NotificationBell() {
             )}
           </div>
 
-          <div className="max-h-[420px] overflow-y-auto">
+          {/* List */}
+          <div className="max-h-[300px] overflow-y-auto overscroll-contain md:max-h-[420px]">
             {notifications.length === 0 ? (
               <div className="p-6 text-center">
                 <p className="font-bold text-[#667085]">
@@ -157,14 +156,17 @@ export default function NotificationBell() {
                     if (!notification.read_at) {
                       markOne.mutate(notification.id);
                     }
-
                     setOpen(false);
                   }}
                   className={`block border-b border-[#f1e4c7] p-4 transition hover:bg-[#fffaf0] ${
                     !notification.read_at ? "bg-[#fff8e8]" : "bg-white"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div
+                    className={`flex items-start gap-3 ${
+                      isAr ? "flex-row-reverse" : ""
+                    }`}
+                  >
                     <span
                       className={`mt-1 h-3 w-3 shrink-0 rounded-full ${
                         !notification.read_at
@@ -173,12 +175,12 @@ export default function NotificationBell() {
                       }`}
                     />
 
-                    <div className="min-w-0">
-                      <h4 className="break-words font-black text-[#06142b]">
+                    <div className={`min-w-0 ${isAr ? "text-right" : "text-left"}`}>
+                      <h4 className="break-words whitespace-normal font-black text-[#06142b]">
                         {getNotificationTitle(notification)}
                       </h4>
 
-                      <p className="mt-1 break-words text-sm leading-6 text-[#667085]">
+                      <p className="mt-1 break-words whitespace-normal text-sm leading-6 text-[#667085]">
                         {getNotificationMessage(notification)}
                       </p>
 
