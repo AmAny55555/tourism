@@ -33,15 +33,25 @@ class AnalyticsController extends Controller
         $acceptedPaymentsCount = Payment::where('status', 'approved')->count();
 
         // أكثر / أقل وجهة
-        $mostTravelledDestination = Booking::select('destination', DB::raw('COUNT(*) as total'))
-            ->groupBy('destination')
-            ->orderByDesc('total')
-            ->first();
+    $mostTravelledDestination = Booking::select(
+        'destination',
+        'destination_ar',
+        'destination_en',
+        DB::raw('COUNT(*) as total')
+    )
+    ->groupBy('destination', 'destination_ar', 'destination_en')
+    ->orderByDesc('total')
+    ->first();
 
-        $leastTravelledDestination = Booking::select('destination', DB::raw('COUNT(*) as total'))
-            ->groupBy('destination')
-            ->orderBy('total')
-            ->first();
+$leastTravelledDestination = Booking::select(
+        'destination',
+        'destination_ar',
+        'destination_en',
+        DB::raw('COUNT(*) as total')
+    )
+    ->groupBy('destination', 'destination_ar', 'destination_en')
+    ->orderBy('total')
+    ->first();
 
         // أكثر عميل سفرًا
         $topCustomer = Booking::select('user_id', DB::raw('COUNT(*) as total'))

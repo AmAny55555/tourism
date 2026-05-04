@@ -11,13 +11,34 @@ use Illuminate\Validation\Rule;
 
 class TravelCountryController extends Controller
 {
-    public function index()
+    private function formatCountry(TravelCountry $country, string $lang): array
     {
+        return [
+            'id' => $country->id,
+            'name' => $lang === 'en'
+                ? ($country->name_en ?? $country->name)
+                : ($country->name_ar ?? $country->name),
+            'name_ar' => $country->name_ar,
+            'name_en' => $country->name_en,
+            'slug' => $country->slug,
+            'image' => $country->image,
+            'is_active' => $country->is_active,
+            'fields' => $country->fields,
+            'created_at' => $country->created_at,
+            'updated_at' => $country->updated_at,
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $lang = $request->query('lang', 'ar');
+
         $countries = TravelCountry::with(['fields' => function ($query) {
             $query->orderBy('sort_order');
         }])
             ->latest()
-            ->get();
+            ->get()
+            ->map(fn ($country) => $this->formatCountry($country, $lang));
 
         return response()->json([
             'countries' => $countries,
@@ -28,13 +49,17 @@ class TravelCountryController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_ar' => ['nullable', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
         $country = TravelCountry::create([
             'name' => $validated['name'],
-            'slug' => Str::slug($validated['name']),
+            'name_ar' => $validated['name_ar'] ?? $validated['name'],
+            'name_en' => $validated['name_en'] ?? $validated['name'],
+            'slug' => Str::slug($validated['name_en'] ?? $validated['name']),
             'image' => $validated['image'] ?? null,
             'is_active' => $validated['is_active'] ?? true,
         ]);

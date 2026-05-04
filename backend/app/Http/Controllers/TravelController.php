@@ -15,7 +15,7 @@ class TravelController extends Controller
     public function countries()
     {
         $countries = TravelCountry::where('is_active', true)
-         ->select('id', 'name', 'name_ar', 'name_en', 'slug', 'image')
+            ->select('id', 'name', 'name_ar', 'name_en', 'slug', 'image')
             ->get();
 
         return response()->json([
@@ -72,15 +72,12 @@ class TravelController extends Controller
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
-
                 'title' => 'طلب رحلة خارجية جديد',
                 'message' => 'تم إرسال طلب رحلة خارجية جديد، يرجى مراجعته.',
-
                 'title_ar' => 'طلب رحلة خارجية جديد',
                 'title_en' => 'New outbound trip request',
                 'message_ar' => 'تم إرسال طلب رحلة خارجية جديد، يرجى مراجعته.',
                 'message_en' => 'A new outbound trip request has been submitted. Please review it.',
-
                 'type' => 'foreign_trip_request_created',
                 'url' => '/admin',
             ]);
@@ -104,6 +101,8 @@ class TravelController extends Controller
                     'foreign_trip_request_id' => $tripRequest->id,
                     'travel_form_field_id' => $field->id,
                     'value' => $value,
+                    'value_ar' => $value,
+                    'value_en' => null,
                 ]);
             }
         }
@@ -118,8 +117,9 @@ class TravelController extends Controller
     {
         $requests = ForeignTripRequest::with([
             'user:id,name,email',
-         'country:id,name,name_ar,name_en',
-            'answers.field:id,label,type',
+            'country:id,name,name_ar,name_en',
+            'answers:id,foreign_trip_request_id,travel_form_field_id,value,value_ar,value_en',
+          'answers.field:id,label,label_ar,label_en,type',
         ])
             ->latest()
             ->get();
@@ -144,15 +144,12 @@ class TravelController extends Controller
 
         Notification::create([
             'user_id' => $foreignRequest->user_id,
-
             'title' => 'تم تحديد سعر طلب السفر',
             'message' => 'تم تحديد تكلفة طلب السفر الخارجي. يمكنك الآن مراجعة التفاصيل والانتقال للدفع.',
-
             'title_ar' => 'تم تحديد سعر طلب السفر',
             'title_en' => 'Travel request price has been set',
             'message_ar' => 'تم تحديد تكلفة طلب السفر الخارجي. يمكنك الآن مراجعة التفاصيل والانتقال للدفع.',
             'message_en' => 'The cost of your outbound travel request has been set. You can now review the details and proceed to payment.',
-
             'type' => 'foreign_trip_designed',
             'url' => '/dashboard',
         ]);
@@ -165,7 +162,9 @@ class TravelController extends Controller
 
     public function myRequests()
     {
-        $requests = ForeignTripRequest::with('country')
+        $requests = ForeignTripRequest::with([
+            'country:id,name,name_ar,name_en',
+        ])
             ->where('user_id', auth()->id())
             ->latest()
             ->get();
@@ -181,7 +180,7 @@ class TravelController extends Controller
             abort(403, 'غير مسموح لك بعرض هذا الطلب');
         }
 
-     $foreignRequest->load('country:id,name,name_ar,name_en');
+        $foreignRequest->load('country:id,name,name_ar,name_en');
 
         return response()->json([
             'trip' => $foreignRequest,
@@ -220,15 +219,12 @@ class TravelController extends Controller
         foreach ($admins as $admin) {
             Notification::create([
                 'user_id' => $admin->id,
-
                 'title' => 'دفع جديد لرحلة خارجية',
                 'message' => 'تم إرسال بيانات دفع جديدة لرحلة خارجية، يرجى مراجعتها.',
-
                 'title_ar' => 'دفع جديد لرحلة خارجية',
                 'title_en' => 'New outbound trip payment',
                 'message_ar' => 'تم إرسال بيانات دفع جديدة لرحلة خارجية، يرجى مراجعتها.',
                 'message_en' => 'New payment details for an outbound trip have been submitted. Please review them.',
-
                 'type' => 'foreign_payment_submitted',
                 'url' => '/admin/foreign-payments',
             ]);
@@ -249,7 +245,7 @@ class TravelController extends Controller
     {
         $payments = ForeignPayment::with([
             'request.user:id,name,email',
-          'request.country:id,name,name_ar,name_en',
+            'request.country:id,name,name_ar,name_en',
         ])
             ->latest()
             ->get();
@@ -282,15 +278,12 @@ class TravelController extends Controller
 
         Notification::create([
             'user_id' => $user->id,
-
             'title' => 'تم قبول الدفع',
             'message' => 'تم قبول دفع طلب السفر الخارجي وإضافة 30 نقطة إلى حسابك.',
-
             'title_ar' => 'تم قبول الدفع',
             'title_en' => 'Payment approved',
             'message_ar' => 'تم قبول دفع طلب السفر الخارجي وإضافة 30 نقطة إلى حسابك.',
             'message_en' => 'Your outbound travel payment has been approved, and 30 points have been added to your account.',
-
             'type' => 'foreign_payment_approved',
             'url' => '/dashboard',
         ]);
@@ -315,15 +308,12 @@ class TravelController extends Controller
 
         Notification::create([
             'user_id' => $payment->request->user_id,
-
             'title' => 'تم رفض الدفع',
             'message' => 'تم رفض دفع طلب السفر الخارجي. يرجى مراجعة الملاحظات والمحاولة مرة أخرى.',
-
             'title_ar' => 'تم رفض الدفع',
             'title_en' => 'Payment rejected',
             'message_ar' => 'تم رفض دفع طلب السفر الخارجي. يرجى مراجعة الملاحظات والمحاولة مرة أخرى.',
             'message_en' => 'Your outbound travel payment was rejected. Please review the notes and try again.',
-
             'type' => 'foreign_payment_rejected',
             'url' => '/dashboard',
         ]);

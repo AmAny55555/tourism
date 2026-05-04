@@ -8,11 +8,49 @@ use Illuminate\Support\Str;
 
 class DestinationController extends Controller
 {
-    public function index()
+    private function formatDestination(Destination $d, string $lang): array
     {
+        return [
+            'id' => $d->id,
+            'slug' => $d->slug,
+
+            'name' => $lang === 'en' ? ($d->name_en ?? $d->name) : ($d->name_ar ?? $d->name),
+            'location' => $lang === 'en' ? ($d->location_en ?? $d->location) : ($d->location_ar ?? $d->location),
+            'category' => $d->category,
+
+            'price' => $d->price,
+            'rating' => $d->rating,
+            'days' => $d->days,
+
+            'badge' => $lang === 'en' ? ($d->badge_en ?? $d->badge) : ($d->badge_ar ?? $d->badge),
+            'description' => $lang === 'en' ? ($d->description_en ?? $d->description) : ($d->description_ar ?? $d->description),
+            'overview' => $d->overview,
+
+            'landmarks' => $lang === 'en'
+                ? ($d->landmarks_en ?? $d->landmarks)
+                : ($d->landmarks_ar ?? $d->landmarks),
+
+            'best_time_to_visit' => $lang === 'en'
+                ? ($d->best_time_to_visit_en ?? $d->best_time_to_visit)
+                : ($d->best_time_to_visit_ar ?? $d->best_time_to_visit),
+
+            'image' => $d->image,
+            'cover_image' => $d->cover_image,
+            'is_active' => $d->is_active,
+            'is_featured' => $d->is_featured,
+            'created_at' => $d->created_at,
+            'updated_at' => $d->updated_at,
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $lang = $request->query('lang', 'ar');
+
         $destinations = Destination::where('is_active', true)
             ->latest()
-            ->get();
+            ->get()
+            ->map(fn ($destination) => $this->formatDestination($destination, $lang));
 
         return response()->json([
             'destinations' => $destinations,
@@ -36,6 +74,9 @@ class DestinationController extends Controller
             'name_en' => ['nullable', 'string', 'max:255'],
 
             'location' => ['nullable', 'string', 'max:255'],
+            'location_ar' => ['nullable', 'string', 'max:255'],
+            'location_en' => ['nullable', 'string', 'max:255'],
+
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
@@ -85,6 +126,9 @@ class DestinationController extends Controller
             'slug' => Str::slug($validated['name']) . '-' . time(),
 
             'location' => $validated['location'] ?? null,
+            'location_ar' => $validated['location_ar'] ?? ($validated['location'] ?? null),
+            'location_en' => $validated['location_en'] ?? ($validated['location'] ?? null),
+
             'category' => $validated['category'] ?? 'Economy Class',
 
             'price' => $validated['price'],
@@ -122,14 +166,16 @@ class DestinationController extends Controller
         ], 201);
     }
 
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
+        $lang = $request->query('lang', 'ar');
+
         $destination = Destination::where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
         return response()->json([
-            'destination' => $destination,
+            'destination' => $this->formatDestination($destination, $lang),
         ]);
     }
 
@@ -141,6 +187,9 @@ class DestinationController extends Controller
             'name_en' => ['nullable', 'string', 'max:255'],
 
             'location' => ['nullable', 'string', 'max:255'],
+            'location_ar' => ['nullable', 'string', 'max:255'],
+            'location_en' => ['nullable', 'string', 'max:255'],
+
             'category' => ['nullable', 'string', 'max:255'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
@@ -182,43 +231,28 @@ class DestinationController extends Controller
         if (isset($validated['name'])) {
             $validated['slug'] = Str::slug($validated['name']) . '-' . time();
 
-            if (!isset($validated['name_ar'])) {
-                $validated['name_ar'] = $validated['name'];
-            }
+            $validated['name_ar'] = $validated['name_ar'] ?? $validated['name'];
+            $validated['name_en'] = $validated['name_en'] ?? $validated['name'];
+        }
 
-            if (!isset($validated['name_en'])) {
-                $validated['name_en'] = $validated['name'];
-            }
+        if (array_key_exists('location', $validated)) {
+            $validated['location_ar'] = $validated['location_ar'] ?? $validated['location'];
+            $validated['location_en'] = $validated['location_en'] ?? $validated['location'];
         }
 
         if (array_key_exists('badge', $validated)) {
-            if (!isset($validated['badge_ar'])) {
-                $validated['badge_ar'] = $validated['badge'];
-            }
-
-            if (!isset($validated['badge_en'])) {
-                $validated['badge_en'] = $validated['badge'];
-            }
+            $validated['badge_ar'] = $validated['badge_ar'] ?? $validated['badge'];
+            $validated['badge_en'] = $validated['badge_en'] ?? $validated['badge'];
         }
 
         if (array_key_exists('description', $validated)) {
-            if (!isset($validated['description_ar'])) {
-                $validated['description_ar'] = $validated['description'];
-            }
-
-            if (!isset($validated['description_en'])) {
-                $validated['description_en'] = $validated['description'];
-            }
+            $validated['description_ar'] = $validated['description_ar'] ?? $validated['description'];
+            $validated['description_en'] = $validated['description_en'] ?? $validated['description'];
         }
 
         if (array_key_exists('best_time_to_visit', $validated)) {
-            if (!isset($validated['best_time_to_visit_ar'])) {
-                $validated['best_time_to_visit_ar'] = $validated['best_time_to_visit'];
-            }
-
-            if (!isset($validated['best_time_to_visit_en'])) {
-                $validated['best_time_to_visit_en'] = $validated['best_time_to_visit'];
-            }
+            $validated['best_time_to_visit_ar'] = $validated['best_time_to_visit_ar'] ?? $validated['best_time_to_visit'];
+            $validated['best_time_to_visit_en'] = $validated['best_time_to_visit_en'] ?? $validated['best_time_to_visit'];
         }
 
         $destination->update($validated);
