@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\TravelCountryController;
 use App\Http\Controllers\TravelController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ContactMessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,7 +117,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-foreign-trip-requests', [TravelController::class, 'myRequests']);
     Route::get('/foreign-trip/{foreignRequest}', [TravelController::class, 'showForeignTrip']);
     Route::post('/foreign-payments/{foreignRequest}', [TravelController::class, 'storeForeignPayment']);
-
+Route::post('/contact-messages', [ContactMessageController::class, 'store']);
     /*
     |--------------------------------------------------------------------------
     | Admin Routes
